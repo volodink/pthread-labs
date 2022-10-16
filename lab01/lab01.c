@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <time.h>
 
 struct thread_data {
    int *data;
@@ -60,16 +61,19 @@ int main()
     pthread_t thread_1_id, thread_2_id;
     thread_data tdata_max, tdata_min;
     int N = 0;
+
+    srand(time(NULL));
     
     printf("Enter number elements:");
     int res = scanf("%d", &N);
+    // N = 10e8;
 
     int *data = (int *)malloc(N * sizeof(int));
     for (int i = 0; i < N; i++)
     {
         int e = 0;
         int res = scanf("%d", &e);
-        data[i] = e;
+        data[i] = rand();
     }
 
     tdata_max.data = data;
