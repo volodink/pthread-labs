@@ -44,7 +44,7 @@ int main()
     printf("Enter number of threads (NUM_THREADS):");
     res = scanf("%d", &NUM_THREADS);
 
-    printf("Serial test: [%.3lf, %.3lf] -> %.5lf\n", a, b, integrate(a, b, 1000));  
+    printf("Serial test: [%.3lf, %.3lf] -> %.5lf\n", a, b, integrate(a, b, N*NUM_THREADS));  
 
     pthread_t* threads = (pthread_t*)malloc(NUM_THREADS * sizeof(pthread_t));
     thread_data* tdata = (thread_data*)malloc(NUM_THREADS * sizeof(thread_data));
