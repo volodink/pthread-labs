@@ -12,11 +12,13 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <semaphore.h>
 
 int NUM_THREADS = 0;
 
 struct thread_data {
+   int tid; 
    double from;
    double to;
    long int steps;
@@ -38,6 +40,7 @@ double integrate(double from, double to, long int steps);
 // queue functions and variables
 struct node* head = NULL; // голова очереди
 
+pthread_mutex_t mutex; // мютекс
 sem_t sem; // семафор
 
 double integralValue = 0;
@@ -59,16 +62,18 @@ int main()
     printf("Enter max threads in critical section (K):");
     res = scanf("%d", &K);
     
-    printf("Serial integral value on [%.3lf, %.3lf] -> %.5lf\n", a, b, integrate(a, b, N));  
+    printf("Serial integral value on [%.3lf, %.3lf] -> %.5lf\n", a, b, integrate(a, b, N*NUM_THREADS));  
 
     pthread_t* threads = (pthread_t*)malloc(NUM_THREADS * sizeof(pthread_t));
     thread_data* tdata = (thread_data*)malloc(NUM_THREADS * sizeof(thread_data));
 
+    pthread_mutex_init(&mutex, NULL) ; 
     sem_init (&sem, 0, K) ;
 
     double distance = (b - a) / NUM_THREADS;
     for (int i = 0; i < NUM_THREADS; i++)
     {
+        tdata[i].tid = i;
         tdata[i].from = a + i * distance;
         tdata[i].to = a + (i+1) * distance;
         tdata[i].steps = N;
@@ -89,6 +94,7 @@ int main()
     while (current != NULL)
     {
         integralValue += current->integralPartialValue;
+        //printf("%lf\n", current->integralPartialValue);
         current = current->next;
     }
     
@@ -104,30 +110,29 @@ int main()
 
 void *trapIntegrateThread(void *arg)
 {
-    struct thread_data *tdata = (thread_data *)arg;
+    sem_wait(&sem);
 
+    struct thread_data *tdata = (thread_data *)arg;
+    
     tdata->result = integrate(
                                 tdata->from,
                                 tdata->to, 
                                 tdata->steps
-                    );
+    );
 
-    sem_wait(&sem);
-    
-        //начало критической секции – запись результата в очередь
-        
+    //начало критической секции – запись результата в очередь
+    pthread_mutex_lock(&mutex);
+
         // Создаем элемент очереди
         struct node* resultNode = (struct node*)malloc(sizeof(struct node));
         resultNode->integralPartialValue = tdata->result;
         resultNode->next = NULL;
 
         /* Включить элемент в очередь: */
-
         if (head == NULL) /* Список пуст*/
             head = resultNode;
         else             /* Включить звено в уже существующий список */ 
         {
-
             // Проходим в конец очереди
             struct node* end = NULL;
             struct node* current = head;
@@ -139,12 +144,12 @@ void *trapIntegrateThread(void *arg)
             
             end->next = resultNode; // Добавляем адрес элемента следующим
         }
-        //конец критической секции
     
-    //увеличение значения семафора
+    //конец критической секции
+    pthread_mutex_unlock(&mutex); 
+    
+    // pthread_exit(NULL);
     sem_post(&sem);
-
-    pthread_exit(NULL);
 }
 
 double f(double x)
