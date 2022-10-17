@@ -39,7 +39,7 @@ int main()
     printf("Enter steps count (N):");
     res = scanf("%ld", &N);
 
-    printf("Serial test: [%.3lf, %.3lf] -> %.3lf\n", a, b, integrate(a, b, 1000));  
+    printf("Serial test: [%.3lf, %.3lf] -> %.3lf\n", a, b, integrate(a, b, N*NUM_THREADS));  
 
     double distance = (b - a) / NUM_THREADS;
     for (int i = 0; i < NUM_THREADS; i++)
