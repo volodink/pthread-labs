@@ -71,7 +71,10 @@ int main()
     printf("Enter number elements:");
     int res = scanf("%d", &N);
 
+    // Запрашиваем память под массив из N целых чисел
     int *data = (int *)malloc(N * sizeof(int));
+
+    // Заполняем массив чисел с клавиатуры
     for (int i = 0; i < N; i++)
     {
         int e = 0;
@@ -84,15 +87,19 @@ int main()
     tdata_min.data = data;
     tdata_min.n = N;
     
+    // Создаем два потока, каждый для своей задачи
     pthread_create(&thread_1_id, NULL, maxElementIndex, (void *)&tdata_max);
     pthread_create(&thread_2_id, NULL, minElementIndex, (void *)&tdata_min);
     
+    // Ожидаем окончания работы потоков
     pthread_join(thread_1_id, NULL);
     pthread_join(thread_2_id, NULL);
     
+    // Выводим результаты поиска
     printf("Maximum element index: %d\n", tdata_max.result);
     printf("Minimum element index: %d\n", tdata_min.result);
 
+    // Освобождаем память, занятую массивом целых чисел
     free(data);
     
     return 0;
