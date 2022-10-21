@@ -11,6 +11,7 @@
 
 #define NUM_THREADS 10
 
+// Определяем структуру данных для взаимодействия с потоками
 struct thread_data {
    double from;
    double to;
@@ -24,6 +25,7 @@ void *trapIntegrateThread(void *arg);
 double f(double x);
 double integrate(double from, double to, long int steps);
 
+// Главная функция - корневой поток
 int main()
 {
     pthread_t threads[NUM_THREADS];
@@ -32,15 +34,22 @@ int main()
     double a, b;
     long int N;
 
+    // Просим пользователя ввести нижнюю границу интегрирования
     printf("Enter lower bound (a):");
     int res = scanf("%lf", &a);
+
+    // Просим пользователя ввести верхнюю границу интегрирования
     printf("Enter upper bound (b):");
     res = scanf("%lf", &b);
+
+    // Просим пользователя ввести количество интервалов интегриования
     printf("Enter steps count (N):");
     res = scanf("%ld", &N);
 
+    // Выводим значение интеграла полученное последовательным алгоритмом
     printf("Serial test: [%.3lf, %.3lf] -> %.3lf\n", a, b, integrate(a, b, N*NUM_THREADS));  
 
+    // Создаем потоки каждый для своей части интеграла
     double distance = (b - a) / NUM_THREADS;
     for (int i = 0; i < NUM_THREADS; i++)
     {
@@ -55,20 +64,23 @@ int main()
         );
     }
 
+    // Ожидаем окончания работы потоков
     double integralValue = 0;
     for (int i = 0; i < NUM_THREADS; i++)
     {
         pthread_join(threads[i], NULL);
 
-        // Sum everything
+        // Суммируем общее значение интеграла
         integralValue += tdata[i].result;
     }
     
+    // Выводим значение интеграла параллельным алгоритмом
     printf("Parallel integral value: %.3lf\n", integralValue);
 
     return 0;
 }
 
+// Функция потока по вычислению частей интеграла
 void *trapIntegrateThread(void *arg)
 {
     struct thread_data *tdata = (thread_data *)arg;
@@ -82,6 +94,7 @@ void *trapIntegrateThread(void *arg)
     pthread_exit(NULL);
 }
 
+// Интегрируемая функция  
 double f(double x)
 {
     return x * x;
