@@ -79,7 +79,7 @@ int main()
     {
         int e = 0;
         int res = scanf("%d", &e);
-        data[i] = res;
+        data[i] = e;
     }
 
     tdata_max.data = data;
